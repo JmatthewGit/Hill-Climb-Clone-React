@@ -5,6 +5,9 @@ import styled from "styled-components";
 const Canvas = styled.canvas`
   border: 1px solid #000;
   background-color: #87ceeb; /* Sky blue */
+  width: 100vw;
+  height: 100vh;
+  display: block;
 `;
 
 // Vehicle dimensions
@@ -27,13 +30,30 @@ function App() {
   });
 
   // Terrain state
-  const terrain = useRef(generateTerrain(800));
+  const terrain = useRef(generateTerrain(window.innerWidth));
 
   // Physics constants
   const gravity = 0.5;
   const friction = 0.98;
   const acceleration = 0.5;
   const maxSpeed = 10;
+
+  // Resize canvas
+  useEffect(() => {
+    const handleResize = () => {
+      const canvas = canvasRef.current;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      terrain.current = generateTerrain(canvas.width);
+    };
+
+    handleResize(); // Initial resize
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   // Event listeners for key presses (left and right arrow keys)
   useEffect(() => {
@@ -120,7 +140,7 @@ function App() {
     return () => {
       cancelAnimationFrame(animationFrameId); // Stop animation on unmount
     };
-  }, [updateVehicle]); // Add updateVehicle here
+  }, [updateVehicle]);
 
   const draw = (ctx) => {
     // Clear the canvas for the next frame
@@ -158,7 +178,7 @@ function App() {
   return (
     <div>
       <h1>Hill Climb Clone in React</h1>
-      <Canvas ref={canvasRef} width={800} height={400} />
+      <Canvas ref={canvasRef} />
       <p>Use Left and Right arrow keys to move the vehicle.</p>
     </div>
   );
