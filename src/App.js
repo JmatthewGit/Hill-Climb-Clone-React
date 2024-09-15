@@ -1,5 +1,4 @@
-// src/App.js
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import styled from "styled-components";
 
 // Styled canvas
@@ -63,27 +62,8 @@ function App() {
     };
   }, []);
 
-  // Game loop to update the vehicle and render the scene
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-
-    let animationFrameId;
-
-    const render = () => {
-      updateVehicle(); // Update vehicle position
-      draw(ctx); // Draw the scene
-      animationFrameId = requestAnimationFrame(render); // Loop for animation
-    };
-    render();
-
-    return () => {
-      cancelAnimationFrame(animationFrameId); // Stop animation on unmount
-    };
-  }, [keys, updateVehicle]); // Add updateVehicle here
-
-  // Update vehicle based on key presses and physics
-  const updateVehicle = () => {
+  // Memoized updateVehicle function to avoid unnecessary re-renders
+  const updateVehicle = useCallback(() => {
     if (keys.left) {
       vehicle.current.vx -= acceleration;
     }
@@ -121,7 +101,26 @@ function App() {
       vehicle.current.x = canvasRef.current.width;
       vehicle.current.vx = 0;
     }
-  };
+  }, [keys]);
+
+  // Game loop to update the vehicle and render the scene
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+
+    let animationFrameId;
+
+    const render = () => {
+      updateVehicle(); // Update vehicle position
+      draw(ctx); // Draw the scene
+      animationFrameId = requestAnimationFrame(render); // Loop for animation
+    };
+    render();
+
+    return () => {
+      cancelAnimationFrame(animationFrameId); // Stop animation on unmount
+    };
+  }, [updateVehicle]); // Add updateVehicle here
 
   const draw = (ctx) => {
     // Clear the canvas for the next frame
