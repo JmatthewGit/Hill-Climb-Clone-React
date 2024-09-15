@@ -80,7 +80,7 @@ function App() {
     return () => {
       cancelAnimationFrame(animationFrameId); // Stop animation on unmount
     };
-  }, [keys]);
+  }, [keys, updateVehicle]); // Add updateVehicle here
 
   // Update vehicle based on key presses and physics
   const updateVehicle = () => {
